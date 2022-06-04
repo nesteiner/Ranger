@@ -1,0 +1,162 @@
+#+title: Spring Login with JWT
+* Introduction
+** References
+https://cloud.tencent.com/developer/article/1699801
+** Github Repository
+https://github.com/nesteiner/spring-login-jwt-role
+* Token 登录和请求资源
+** Token 使用介绍
+来自客户端的请求分为两种，一种是 =Login/Register= ，另一种是请求资源
+=Login/Register= 不需要携带 *认证头* ，请求资源需要携带 *认证头*
+** Filter
+#+begin_src java
+  @Component
+  @Slf4j
+  public class JwtAuthenticationFilter extends OncePerRequestFilter {
+      @Value("${jwt.header.string}")
+      public String HEADER_STRING;
+
+      @Value("${jwt.token.prefix}")
+      public String TOKEN_PREFIX;
+
+      @Autowired
+      UserService userService;
+
+      @Autowired
+      TokenUtil jwtTokenUtil;
+
+      @Override
+      protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+          String header = request.getHeader(HEADER_STRING);
+          String username = null, authticationToken = null;
+          if(header != null && header.startsWith(TOKEN_PREFIX)) {
+              authticationToken = header.replace(TOKEN_PREFIX, "");
+              try {
+                  username = jwtTokenUtil.getUsernameFromToken(authticationToken);
+              } catch (IllegalArgumentException e) {
+                  log.error("An error occurred while fetching Username from Token", e);
+              } catch (ExpiredJwtException e) {
+                  log.warn("the token has been expired", e);
+              } catch (SignatureException e) {
+                  log.error("authentication failed. username or password not valid");
+              }
+          } else {
+              log.warn("couln't find bearre string, header will be ignored");
+          }
+
+          if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+              UserDetails userDetails = userService.loadUserByUsername(username);
+              if(jwtTokenUtil.validateToken(authticationToken, userDetails)) {
+                  UsernamePasswordAuthenticationToken authentication = jwtTokenUtil.getAuthenticationToken(
+                          authticationToken,
+                          null,
+                          userDetails
+                          );
+                  authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                  SecurityContextHolder.getContext().setAuthentication(authentication);
+              }
+          }
+
+          filterChain.doFilter(request, response);
+      }
+  }
+
+#+end_src
+
+1. 客户端携带了认证头，filter解析出 token 与 username ，再得到 userdetail 来设置认证，最后传递到filter链下一节点
+2. 如果客户端没有携带认证头，直接传递到filter下一节点
+
+** 开放接口
+1. /user/login
+2. /user/register
+
+*** 在 WebSecurityConfigure 中设置接口
+#+begin_src java
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.cors().and().csrf().disable()
+            .authorizeRequests()
+            .antMatchers("/user/authenticate", "/user/register").permitAll().anyRequest().authenticated()
+            ...
+
+    }
+
+#+end_src
+
+*** 定义 Controller
+#+begin_src java
+  @PostMapping("/authenticate")
+  public ResponseEntity<?> generateToken(@RequestBody LoginUser loginUser) {
+      final Authentication authentication = authenticationManager.authenticate(
+              new UsernamePasswordAuthenticationToken(
+                      loginUser.getName(),
+                      loginUser.getPassword()
+              )
+      );
+
+      SecurityContextHolder.getContext().setAuthentication(authentication);;
+      final String token = jwtTokenUtil.generateToken(authentication);
+      return ResponseEntity.ok(new AuthenticationToken(token));
+  }
+
+  @PostMapping("/register")
+  public User saveUser(@RequestBody UserDto user) {
+      return userService.save(user);
+  }
+#+end_src
+* Token 请求资源和权限控制
+** 数据表结构
+1. user
+2. role
+3. user_role
+
+** UserService
+#+begin_src java
+  @Override
+  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+      User user = userDao.findByName(username);
+      if(user == null) {
+          throw new UsernameNotFoundException("invalid username or password");
+      } else {
+          return new org.springframework.security.core.userdetails.User(user.getName(), user.getPassword(), getAuthority(user));
+      }
+  }
+
+  private Set<SimpleGrantedAuthority> getAuthority(User user) {
+      Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+      user.getRoles().forEach(role -> {
+              authorities.add(new SimpleGrantedAuthority(role.getName()));
+          });
+
+      return authorities;
+  }
+
+#+end_src
+
+** AuthenticationFilter
+#+begin_src java
+  @Override
+  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+      String username = (String) request.getAttribute("username");
+      String authenticationToken = (String) request.getAttribute("authenticationToken");
+
+      // 携带了token
+      if(authenticationToken != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+          UserDetails userDetails = userService.loadUserByUsername(username);
+          if(jwtTokenUtil.validateToken(authenticationToken, userDetails)) {
+              UsernamePasswordAuthenticationToken authentication = jwtTokenUtil.getAuthenticationToken(
+                      authenticationToken,
+                      null,
+                      userDetails
+              );
+              authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+              SecurityContextHolder.getContext().setAuthentication(authentication);
+          }
+
+          filterChain.doFilter(request, response);
+      } else {
+          // 未携带token
+          filterChain.doFilter(request, response);
+      }
+  }
+#+end_src

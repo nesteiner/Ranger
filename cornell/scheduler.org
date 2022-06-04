@@ -1,0 +1,34 @@
+#+title: Project Ranger
+* Ranger Week 15
+** at 5.30 to 5.31
+*** Spring Login 整理
+**** 请求token
+1. permit url
+2. authenticate with username and password
+3. return (status, token)
+**** 访问限制资源
+1. with token
+2. filter
+3. validate token
+4. return resource
+
+**** 思考
+1. 设置 LoginFilter
+2. 设置 AuthFilter
+3. 错误信息返回
+4. has role
+*** DONE Linux 程序设计 Mindmap 目录
+
+** at 6.1
+*** Copy Code
+[[https://github1s.com/gf-huanchupk/SpringBootLearning/blob/master/springboot-jwt/src/main/java/com/gf/utils/JwtTokenUtil.java][this link]]
+*** Forget and Rebuild
+** at 6.2
+*** DONE Review Has Role
+*** DONE JPA & MySql & Hibenre
+** at 6.3
+*** DONE [Exploring] MLJFlux 映射到 Flux 知识点
+*** DONE [Exploring] 代数学引论 1-3 章
+*** MLJFlux and Flux building model
+*** 矩阵
+*** 行列式

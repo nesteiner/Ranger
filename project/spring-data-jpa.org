@@ -1,0 +1,68 @@
+#+title: Spring data jpa 简单应用
+* Model
+有两个重要注解
+- =@Entity=
+- =@Column=
+
+自增主键
+- =@GenrateValue(strategy=GenerationType.IDENTITY)=
+* Repository
+#+begin_src java
+  public interface AdminRepository extends CrudRepository<Admin, Long> {
+      List<Admin> findByName(String name);
+      Admin findByIdAndName(Long id, String name);
+      Page<Admin> findAll(Pageable pageable);
+      List<Admin> findAll(Sort sort);
+      List<Admin> findByName(String name, Sort sort);
+  }
+
+#+end_src
+
+=CrudRepository= 有两个类型参数，一个是 model 类型，一个是主键类型
+分发查询方法时，这就像字符串拼接一样， *findBy* 加上 字段名称
+分页查询
+#+begin_src java
+  @Test
+  void findPage() {
+      Pageable pageable = PageRequest.of(0, 2);
+      Page<Admin> page = adminRepository.findAll(pageable);
+      page.forEach(System.out::println);
+   
+  }
+#+end_src
+
+这个程序中，制定这个分页有
+- 2个数据项
+- 第0页
+排序
+#+begin_src java
+  @Test
+  void findSort() {
+      List<Admin> admins = adminRepository.findAll(Sort.by("name"));
+      admins.forEach(System.out::println);
+
+      admins = adminRepository.findByName("123", Sort.by("id"));
+      admins.forEach(System.out::println);
+  }
+#+end_src
+
+* join 表
+there are table
+1. user
+   - id
+2. role
+   - id
+3. user_role
+   - user_id
+   - role_id
+在 User 类定义中
+#+begin_src java
+  @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @JoinTable(name = "USER_ROLES",
+             joinColumns = {
+                 @JoinColumn(name = "USER_ID")
+             },
+             inverseJoinColumns = {
+                 @JoinColumn(name = "ROLE_ID") })
+  private Set<Role> roles;
+#+end_src
