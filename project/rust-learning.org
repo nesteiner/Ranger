@@ -1,0 +1,414 @@
+#+title: Rust Learning Basic
+* 所有权和借用
+1. Rust 中每一个值只能被一个变量所拥有，该变量被称为值的所有者
+2. 当所有者离开作用域范围时，这个值将会被丢弃
+3. 借用分为两种，可变借用和不可变借用
+4. 借用 *不能改变所有权* ，否则编译不通过
+5. 同一作用域，特定数据只能有一个可变引用
+   #+begin_src rust
+     let mut s = String::from("hello");
+
+     let r1 = &s; // 没问题
+     let r2 = &s; // 没问题
+     let r3 = &mut s; // 大问题
+
+     println!("{}, {}, and {}", r1, r2, r3);
+   #+end_src
+
+但是编译器优化可以提前结束变量生命周期
+#+begin_src rust
+  fn main() {
+     let mut s = String::from("hello");
+
+      let r1 = &s;
+      let r2 = &s;
+      println!("{} and {}", r1, r2);
+      // 新编译器中，r1,r2作用域在这里结束
+
+      let r3 = &mut s;
+      println!("{}", r3);
+  } // 老编译器中，r1、r2、r3作用域在这里结束
+    // 新编译器中，r3作用域在这里结束
+#+end_src
+
+对于这种编译器优化行为，Rust 专门起了一个名字 —— Non-Lexical Lifetimes(NLL)，
+专门用于找到某个引用在作用域(})结束前就不再被使用的代码位置。
+
+
+* 复合类型
+** 字符串类型
+1. *字符串字面量是切片*
+   #+begin_src rust
+     let s: &str = "Hello World";
+   #+end_src
+2. 遍历字符串用 =chars()= 迭代器方法
+3. String 类型可变，但 &str 类型不可变
+
+** 元组 too easy
+** 结构体
+1. 基础语法没有问题
+2. 元组结构体主要是为了简化
+   #+begin_src rust
+     struct Color(i32, i32, i32);
+
+     let black = Color(0, 0, 0);
+   #+end_src
+3. 还有没有任何内容的单元结构体
+   #+begin_src rust
+     struct AlwaysEqual;
+
+     let subject = AlwaysEqual;
+
+     // 我们不关心 AlwaysEqual 的字段数据，只关心它的行为，因此将它声明为单元结构体，然后再为它实现某个特征
+     impl SomeTrait for AlwaysEqual {
+
+     }
+   #+end_src
+** 枚举
+*** 基础部分
+这个基础部分可以像其他语言的枚举一样使用
+#+begin_src rust
+  enum PokerSuit {
+    Clubs,
+    Spades,
+    Diamonds,
+    Hearts,
+  }
+#+end_src
+
+声明的时候用 =PokerSuit::Clubs= 即可
+*** 扩展部分
+扩展部分枚举像一个父类，其内容是子类
+#+begin_src rust
+  enum PokerCard {
+      Clubs(u8),
+      Spades(u8),
+      Diamonds(u8),
+      Hearts(u8),
+  }
+
+  fn main() {
+     let c1 = PokerCard::Spades(5);
+     let c2 = PokerCard::Diamonds(13);
+  }
+#+end_src
+** 数组
+数组切片用 &[T] 表示，他是一个宽指针，有固定大小，能在编译期确认
+
+* 方法
+#+begin_src rust
+  impl Type {
+      // fn fnname
+  }
+#+end_src
+几个关键字
+1. self 表示当前调用的对象
+2. &self
+3. &mut self
+4. Self 表示当前类型
+
+* 特征
+** 定义特征
+#+begin_src rust
+  pub trait Summary {
+      fn summarize(&self) -> String;
+  }
+
+#+end_src
+** 特征对象
+1. 传入特征对象，类型签名用 =impl traitname=
+2. 返回特征对象，类型签名用 =impl traitname=
+** 补充
+如果类型实现了两种特征，其中有同名方法，则使用 =trainname::fnname= 即可
+
+* 类型转换
+** 内置转换
+use as
+** 手动转换
+*** From/Into
+From trait 允许一种类型定义 *怎么根据另一种类型生成自己*
+#+begin_src rust
+  use std::convert::From;
+
+  #[derive(Debug)]
+  struct Number {
+      value: i32
+  }
+
+  impl From<i32> for Number {
+      fn from(item: i32) -> Self {
+          Number {
+              value: item
+          }
+      }
+  }
+
+  fn main() {
+      let num = Number::from(30);
+      println!("My number is {:?}", num);
+  }
+#+end_src
+
+Into 是把 From trait 倒过来，我这里不打算用先
+
+*** TryFrom/TryInto
+不同于 From/Into 的是，TryFrom 和 TryInto trait 用于易出错的转换，也正因如此，其返回值是 Result 型
+#+begin_src rust
+  use std::convert::{TryFrom, TryInto};
+
+  #[derive(Debug, PartialEq)]
+  struct EvenNumber(i32);
+
+  impl TryFrom<i32> for EvenNumber {
+      type Error = ();
+
+      fn try_from(value: i32) -> Result<Self, Self::Error> {
+          if value % 2 == 0 {
+              Ok(EvenNumber(value))
+          } else {
+              Err(())
+          }
+      }
+  }
+
+  fn main() {
+      assert_eq!(EvenNumber::try_from(8), Ok(EvenNumber(8)));
+      assert_eq!(EvenNumber::try_from(5), Err(()));
+
+      let result: Result<EvenNumber, ()> = 8i32.try_into();
+      assert_eq!(result, Ok(EvenNumber(8)));
+
+  }
+#+end_src
+
+
+* 返回值和错误处理
+Rust 中没有 try catch 这类处理机制，他通过返回错误类型，强制处理错误
+在 Rust 中的错误氛围两类
+
+- 可恢复错误
+  通常用于从系统全局角度来看可以接受的错误，例如处理用户的访问、操作等错误，
+  这些错误只会影响某个用户自身的操作进程，而不会对系统的全局稳定性产生影响
+- 不可恢复错误
+  刚好相反，该错误通常是全局性或者系统性的错误，
+  例如数组越界访问，系统启动时发生了影响启动流程的错误等等，
+  这些错误的影响往往对于系统来说是致命的
+** Result 类型
+#+begin_src rust
+  enum Result<T, E> {
+      Ok(T),
+      Err(E)
+  }
+#+end_src
+
+#+begin_src rust
+  use std::fs::File;
+
+  fn main() {
+      let f = File::open("hello.txt");
+
+      let f = match f {
+          Ok(file) => file,
+          Err(error) => {
+              panic!("Problem opening the file: {:?}", error)
+          },
+      };
+  }
+#+end_src
+** Option 类型
+#+begin_src rust
+  enum Option<T> {
+      Some(T),
+      None
+  }
+#+end_src
+** 简化操作
+*** 失败就panic
+1. unwrap
+   #+begin_src rust
+     use std::fs::File;
+
+     fn main() {
+         let f = File::open("hello.txt").unwrap();
+     }
+
+   #+end_src
+2. expect
+   #+begin_src rust
+     use std::fs::File;
+
+     fn main() {
+         let f = File::open("hello.txt").expect("can't open this file");
+     }
+   #+end_src
+*** 省略 match
+#+begin_src rust
+  use std::fs::File;
+  use std::io;
+  use std::io::Read;
+
+  fn read_username_from_file() -> Result<String, io::Error> {
+      let mut f = File::open("hello.txt")?;
+      let mut s = String::new();
+      f.read_to_string(&mut s)?;
+      Ok(s)
+  }
+#+end_src
+
+注意
+这个 *?* 是一个语法糖，把他看作一个宏，要处理他的返回值类型
+
+* 包管理
+** 模块
+- mod
+- 文件
+
+** crate
+- 相对路径
+  #+begin_src rust
+    use modname::*;
+  #+end_src
+- 绝对路径
+  #+begin_src rust
+    use crate::modname::*;
+  #+end_src
+** cargo
+*** 依赖
+1. crate.io
+2. git
+3. path
+*** 约定规范
+两个 bin 二进制文件，放入 =bin= 文件夹，使用 =cargo run --bin filename= 执行
+*** 测试
+**** 测试模块
+#+begin_src rust
+  #[cfg(test)]
+  mod test {
+      #[test]
+      fn testname() {
+          // test body
+      }
+  }
+#+end_src
+**** 集成测试
+in project playground
+我们先建立 =src/lib.rs=
+再在 =tests/my_test.rs= 下写入
+#+begin_src rust
+  use playground::*;
+#+end_src
+另外可以在 =lib.rs= 下写下
+#+begin_src rust
+  pub mod modname;
+#+end_src
+
+来暴露给 =my_test.rs=
+*** 组织项目
+- workspace
+  - member
+* TODO 集合类型
+
+
+* LinkedList
+** Option
+1. take
+   #+begin_src rust
+     pub fn take(&mut self) -> Option<T>
+   #+end_src
+
+   take the value out of the option, leaving a None in its place
+2. map
+   #+begin_src rust
+     pub fn map<U, F>(self, f: F) -> Option<U>
+         where F: FnOnce(T) -> U
+   #+end_src
+
+   maps an =Option<T>= to =Option<U>= by applyinig a function to a contained value
+3. as_mut
+   #+begin_src rust
+     pub fn as_mut(&mut self) -> Option<&mut T>
+   #+end_src
+
+   convert from =&mut Option<T>= to =Option<&mut T>=
+   #+begin_src rust
+     let mut x = Some(2);
+     match x.as_mut() {
+         Some(v) => *v = 42,
+         None => {} 
+     }
+   #+end_src
+4. as_ref
+   #+begin_src rust
+     pub const fn as_ref(&self) -> Option<&T>
+   #+end_src
+
+   convert from =&Option<T>= to =Option<&T>=
+5. as_deref
+   #+begin_src rust
+     pub fn as_deref(&self) -> Option<&<T as Deref>::Target> where T: Deref
+   #+end_src
+
+   convert from =Option<T>= to =Option<&T::Target>=
+6. as_deref_mut
+** Iterator 接口
+** TODO 自己实现
+*** list 接口
+1. push
+2. pop
+3. peek
+4. peek_mut
+*** iterator 接口
+1. iter()
+2. into_iter()
+3. iter_mut()
+
+* 深入类型
+** 类型大小探讨
+编译器需要知道编译器类型的大小，不过只是在栈上
+类型大小有两种
+- Sized
+- DST
+
+str 是一个动态类型，他的大小运行期才知道，下面的代码因此会报错
+#+begin_src rust
+  // error
+  let s1: str = "Hello there";
+  let s2: str = "How is it going";
+
+  // ok
+  let s3: &str = "on?"
+#+end_src
+Rust 需要明确地知道一个特定类型的值占据了多少内存空间，同时该类型的所有值都必须使用相同的内存大小
+如果 Rust 允许我们使用这种动态类型，那么这两个 str 值就需要占用同样大小的内存，这与事实不符
+那么为何字符串切片 &str 就是固定大小呢？
+因为它的引用存储在栈上，具有固定大小(类似指针)，同时它指向的数据存储在堆中，也是已知的大小，
+再加上 &str 引用中包含有堆上数据内存地址、长度等信息，因此最终可以得出字符串切片是固定大小类型的结论
+
+那又如何看待特征对象?
+#+begin_src rust
+  fn test1(thing: &dyn Item) {}    // OK
+  fn test2(thing: Box<dyn Item>) {}// OK
+  fn test3(thing: Item) {} // ERROR
+#+end_src
+
+只能通过引用或 =Box= 的方式来使用特征对象，直接使用将会报错
+*总结: 只能间接使用 DST*
+** TODO 枚举与整数
+* 解引用
+解引用与所有权
+解引用会夺走所有权
+#+begin_src rust
+  let x = String::from("hello");
+  let y = &x;
+
+  let z = &*y; // Ok
+  let a = *y;   // x is taken
+  println!("{:?}", x);
+
+  let x = Box::new(String::from("Hello"));
+  let y = &x;
+  let z = *y;  // error
+
+  println!("{:?}", x);
+
+#+end_src

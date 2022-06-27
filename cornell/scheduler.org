@@ -1,5 +1,260 @@
 #+title: Project Ranger
+#+startup: overview
+* Summery Holidy
+** 循环学习
+1. 基础学习
+2. 库使用
+3. 手写库
+4. *Mindmap 整理*
+
+
+** at 6.27
+*** Rust
+1. List 复习
+   - map
+   - take
+2. List 迭代器
+3. 多线程
+4. NonNull Copy ? 其他类型他怎么Copy ?
+*** Julia
+1. [Exploring] 库的使用
+2. [Exploring] Codewars
+3. [Exploring] 动手学 深度学习
+4. [Worker] https://bio322.epfl.ch/
+
+*** Java
+1. LeetCode
+2. Stream
+3. 集合类型
+4. Optional
+
+
+
+** at 6.26
+*** Rust
+1. Mindmap 整理
+2. 多线程
+3. 错误处理
+4. 链表实现
+*** Julia
+1. [Exploring] 库的使用
+2. [Exploring] Codewars
+3. [Exploring] 动手学 深度学习
+4. [Worker] https://bio322.epfl.ch/
+*** Java
+1. LeetCode
+2. Stream
+3. 集合类型
+4. Optional
+** at 6.25
+*** Rust
+1. 生命周期
+2. 函数式编程
+3. 深入类型
+4. 智能指针
+5. Mindmap 整理
+*** Julia
+1. [Exploring] 库使用
+2. [Exploring] Codewars
+
+
+** at 6.24
+*** Rust Learn
+- 联想学习
+- 基础巩固
+- 数据结构
+
+- clap  
+*** Julia Project
+**** [[https://github.com/tarka/xcp][xcp]]
+**** CSV
+**** Database
+**** HTTP.jl
+** at 6.23
+*** Rust
+1. walkdir
+2. filetype
+3. 终端读写
+   https://github.com/pflenker/hecto-tutorial/blob/master/src/terminal.rs
+*** Julia
+- walkdir
+- 终端读写
+  https://github.com/nesteiner/EditorJulia
+** at 6.22
+*** 项目
+1. walkdir
+2. filetype
+*** Rust
+- walkdir
+- Linux 环境
+- 终端读写
+
+*** Julia
+- Julia Snail lsp ??
+- Linux 环境
+- 终端读写
+
+
+** at 6.21
+*** Rust
+- pomodoro x4
+- 知识架构搭建
+- Rust By Example 练习设计
+- Linux 程序设计 using Rust *Exploring*
+
+*** Julia
+- socket 编程
+- 动手学 深度学习 *Exploring*
+
+
+** at 6.19
+*** Vue
+1. import html from directory
+2. import jpg/png from directory
+3. document of pagination
+4. page of *scratch*
+*** Rust
+1. 深入类型
+2. 智能指针
+3. 循环引用与自引用
+4. 多线程并发编程
+*** Rust Algorithm
+1. 排序
+2. 字符串
+*** Rust Socket 对比 GeekTime 编程
+
+*** Design
+Julia Algorhitm
+https://algos.rs/sorting/bubble-sort.html
+
+** at 6.18
+*** DONE Rust
+- 集合类型
+- 数组 增删改查
+- HashMap 增闪改查
+- 遍历方法
+
+*** CANCEL Vue Blog
+- State "CANCEL"     from              [2022-06-18 Sat 20:45] \\
+  too many errors
+- 主页 组件
+  - 分页要求
+  - 注册文章
+    
+- Article 组件
+
+*** DONE 疑问
+- function closure return 语句作用与哪里
+  - 局部性
+
+
+
+* Ranger Week 16
+** at 6.14
+*** Nothing to do
+*** English Review
+
+** at 6.13
+*** 复习
+*** 核酸检测
+*** ThinkPad Game Download
+
+** at 6.12
+*** 复习
+- 线性代数
+- 操作系统
+
+*** 主页构造计划
+
+*** Mindmap 回顾
+
+** at 6.11
+*** DONE Mindmap 回顾于预热
+- 挑游戏？
+- MLJFlux & 神经网络
+*** 暑假学习计划
+*** 主页构造计划
+- using Vue
+- using Flutter
+
+
+** at 6.9
+*** 概率论
+*** 操作系统
+
+
+** at 6.8
+*** 历史
+- 全览教材
+*** 概率论
+- 猴博士
+- 练习册重做
+- 试卷
+
+** at 6.7
+*** 物理
+练习册尝试重写
+*** 概率论
+- 猴博士
+- 试卷校对
+*** 操作系统
+第六章PDF
+*** 线性代数
+练习册尝试重写
+
+
+** at 6.6
+*** 操作系统
+- 第六章PDF
+
+*** 物理
+- 练习册抄写
+- 简谐振动
+- 简谐波 波动方程
+- 波的干涉
+- 双缝实验
+- 劈尖
+- 单逢衍射
+- 光栅
+- 光的偏振
+
+*** 线性代数
+- 代数学引论
+- 练习册整理，夹子
+- 答案校对
+- 答案抄写
 * Ranger Week 15
+** at 6.4
+*** MLJFlux and Flux building model
+*** DONE using MLJFlux to predict
+*** TODO 布置复习计划
+- 操作系统
+  PDF 阿里云盘
+- 概率论
+  练习册抄写
+- 线性代数
+  - 代数学引论
+  - 练习册抄写
+- 物理
+  练习册抄写
+
+** at 6.3
+*** DONE [Exploring] MLJFlux 映射到 Flux 知识点
+*** DONE [Exploring] 代数学引论 1-3 章
+*** MLJFlux and Flux building model
+*** 矩阵
+*** 行列式
+
+** at 6.2
+*** DONE Review Has Role
+*** DONE JPA & MySql & Hibenre
+
+
+** at 6.1
+*** Copy Code
+[[https://github1s.com/gf-huanchupk/SpringBootLearning/blob/master/springboot-jwt/src/main/java/com/gf/utils/JwtTokenUtil.java][this link]]
+*** Forget and Rebuild
+
 ** at 5.30 to 5.31
 *** Spring Login 整理
 **** 请求token
@@ -19,16 +274,4 @@
 4. has role
 *** DONE Linux 程序设计 Mindmap 目录
 
-** at 6.1
-*** Copy Code
-[[https://github1s.com/gf-huanchupk/SpringBootLearning/blob/master/springboot-jwt/src/main/java/com/gf/utils/JwtTokenUtil.java][this link]]
-*** Forget and Rebuild
-** at 6.2
-*** DONE Review Has Role
-*** DONE JPA & MySql & Hibenre
-** at 6.3
-*** DONE [Exploring] MLJFlux 映射到 Flux 知识点
-*** DONE [Exploring] 代数学引论 1-3 章
-*** MLJFlux and Flux building model
-*** 矩阵
-*** 行列式
+

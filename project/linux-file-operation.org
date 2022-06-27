@@ -1,0 +1,371 @@
+#+title: Linux 文件操作 in Rust/Julia
+
+* 二进制读写
+#+begin_quote
+Rust's std::fs::File does not have a concept of opening files in text or binary mode.
+All files are opened as "binary" files,
+and no translation of characters such as line feed and carriage return is performed
+#+end_quote
+
+* Rust 文件操作
+# TODO image here
+** Open File
+#+begin_src rust
+  use std::fs::File;
+#+end_src
+
+*** open
+#+begin_src rust
+  pub fn open(path: P) -> Result
+#+end_src
+
+静态方法，以只读模式打开文件
+*** create
+#+begin_src rust
+  pub fn create(path: P) -> Result
+#+end_src
+
+静态方法，以可写模式打开文件
+- 如果文件存在则清空内容
+- 如果文件不存在则新建
+*** options
+#+begin_src rust
+  pub fn options() -> OpenOptions
+#+end_src
+
+添加打开选项，可以是
+- =read(true)=
+- =write(true)=
+- =append(true)=
+
+#+begin_src rust
+  fn main() -> std::io::Result<()> {
+      let mut f = File::options().append(true).open("example.log")?;
+      Ok(())
+  }
+#+end_src  
+** Operate 常用方法
+*** Read
+**** read_to_string
+#+begin_src rust
+  use std::io::Read;
+
+  pub fn read_to_string(&mut self, buf: &mut String) -> Result<usize>
+#+end_src
+
+读取所有内容转换为字符串后追加到 buf 中
+
+**** read
+#+begin_src rust
+  use std::io::Read;
+
+  pub fn read(&mut self, buf: &mut [u8]) -> Result<usize>
+#+end_src
+
+将内容读取到 buf 中，返回大小在 buf 长度到 0 之间
+
+**** readline
+#+begin_src rust
+  use std::fs::File;
+  use std::io::{self, BufRead, BufReader, Lines};
+  use std::path::Path
+
+  fn read_lines<P>(filename: P) -> io::Result<Lines<BufReader<File>>> where P: AsRef<Path> {
+      let file = File::open(filename)?;
+      Ok(BufReader::new(file).lines())
+  }
+
+  fn main() {
+      if let Ok(lines) = read_lines("/etc/hosts") {
+          for line in lines {
+              if let Ok(ip) = line {
+                  println!("{}", ip);
+              }
+          }
+      }
+  }
+#+end_src
+*** Write
+**** write_all
+#+begin_src rust
+  use std::io:Write;
+
+  pub fn write_all(&mut self, buf: &[u8]) -> Result<()>
+#+end_src
+
+将 buf 中的所有内容写入输出流
+
+**** write
+#+begin_src rust
+  use std::io::Write;
+
+  pub fn write(&mut self, buf: &[u8]) -> Result<usize>
+#+end_src
+
+将 buf 中的数据写入 writer ，返回被写入的字节数
+** Close File
+这个好像不需要手动来关闭，生命周期结束的时候自动回收资源了
+** 目录操作
+*** 遍历目录
+#+begin_src rust
+  use walkdir::WalkDir;
+
+  for entry in WalkDir::new("./").into_iter()
+      .map(|e| e.ok())
+      .filter(|e| e.is_some())
+      .map(|e| e.unwrap()) {
+          println!("{}", entry.path().display()); // ./filename
+          println!("{:?}", entry.file_name());    // filename
+      }
+
+#+end_src
+** 系统调用
+*** rm
+#+begin_src rust
+  pub fn remove_file<P: AsRef<Path>>(path: P) -> std::io::Result<()>
+#+end_src
+*** rm -f
+#+begin_src rust
+  pub fn remove_dir_all<P: AsRef<Path>>(path: P) -> std::io::Result<()>
+#+end_src
+*** ls
+#+begin_src rust
+  fn test_ls() {
+      for entry in WalkDir::new("/home/steiner/workspace").into_iter()
+          .map(|e| e.ok())
+          .filter(|e| e.is_some())
+          .map(|e| e.unwrap())
+          .filter(|e| e.depth() <= 1) {
+              println!("{}", entry.path().display());
+          }
+
+  }
+
+#+end_src
+*** mv
+#+begin_src rust
+  pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> std::io::Result<()>
+#+end_src
+*** file
+**** is_dir
+#+begin_src rust
+  pub fn is_dir(&self) -> bool
+#+end_src
+
+#+begin_src rust
+  fn main() -> std::io::Result<()> {
+      use std::fs;
+
+      let metadata = fs::metadata("foo.txt")?;
+      let file_type = metadata.file_type();
+
+      assert_eq!(file_type.is_dir(), false);
+      Ok(())
+  }
+#+end_src
+**** is_file
+#+begin_src rust
+  pub fn is_file(&self) -> bool
+#+end_src
+
+#+begin_src rust
+  fn main() -> std::io::Result<()> {
+      use std::fs;
+
+      let metadata = fs::metadata("foo.txt")?;
+      let file_type = metadata.file_type();
+
+      assert_eq!(file_type.is_file(), true);
+      Ok(())
+  }
+#+end_src
+**** is_symlink
+#+begin_src rust
+  pub fn is_symlink(&self) -> bool
+#+end_src
+
+#+begin_src rust
+  use std::fs;
+
+  fn main() -> std::io::Result<()> {
+      let metadata = fs::symlink_metadata("foo.txt")?;
+      let file_type = metadata.file_type();
+
+      assert_eq!(file_type.is_symlink(), false);
+      Ok(())
+  }
+#+end_src
+
+**** filetype
+#+begin_src rust
+  use std::fs;
+  use std::fs::File;
+  use filetype::{FileType, UnixFileType};
+
+  let f = File::open("foo").unwrap();
+  let ftype = f.file_type().unwrap();
+
+  match ftype {
+      FileType::Regular => {},
+      FileType::Directory => {
+      },
+      FileType::Symlink => {
+      },
+      FileType::NamedPipe => {
+      },
+      FileType::BlockDevice => {
+      },
+      FileType::CharacterDevice => {
+      },
+  }
+#+end_src
+*** 文件链接
+#+begin_src rust
+  pub fn read_link<P: AsRef<Path>>(path: P) -> Result<Path>
+#+end_src
+
+#+begin_src rust
+  use std::fs;
+
+  fn main() -> std::io::Result<()> {
+      let path = fs::read_link("a.txt")?;
+      Ok(())
+  }
+#+end_src
+
+This function will return an error in the following situations, but is not limited to just these cases:
+
+- path is not a symbolic link.
+- path does not exist.
+
+*** exists ?
+#+begin_src rust
+  use std::path::Path;
+
+  fn main() {
+      println!("{}", Path::new("/etc/hosts").exists());
+  }
+#+end_src
+
+
+
+* Julia 文件操作
+** Open File
+| *mode* | *description*                 | *keywords*                   |
+|--------+-------------------------------+------------------------------|
+| r      | read                          | none                         |
+| w      | write, create, truncate       | write = true                 |
+| a      | write, create, append         | append = true                |
+| r+     | read, write                   | read = true, write = true    |
+| w+     | read, write, create, truncate | truncate = true, read = true |
+| a+     | read, write, create, append   | append = true, read = true   |
+** Operate
+1. eof
+2. read
+3. readline
+4. readlines
+5. write
+
+*** Status 系列
+**** eof
+**** isreadonly
+**** isreadable
+**** iswriteable
+**** isopen
+*** Read 系列
+**** read
+#+begin_src julia
+  read(io::IO, T)
+#+end_src
+**** read!
+#+begin_src julia
+  read!(stream::IO, array::AbstractArray)
+
+  读入 array 不会自动增长
+#+end_src
+**** readbyte!
+#+begin_src julia
+readbytes!(stream::IOStream, b::AbstractArray{UInt8}, nb=length(b))
+#+end_src
+
+the size of b will increase if need
+**** readline
+#+begin_src julia
+  readline(io::IO)
+#+end_src
+
+#+begin_src julia
+  file = open(filename, mode)
+
+  while !eof(file)
+    line = readline(file)
+    println(line)
+  end
+#+end_src
+**** readlines
+#+begin_src julia
+  readlines(io::IO)
+#+end_src
+**** eachline
+#+begin_src julia
+  eachline(io::IO)
+#+end_src
+
+#+begin_src julia
+  for line in eachline(file)
+    println(line)
+  end
+#+end_src
+*** Write 系列
+**** write
+#+begin_src julia
+  write(io::IO, x)
+#+end_src
+**** flush
+#+begin_src julia
+  flush(stream)
+#+end_src
+** Close File
+** 文件系统
+*** 文件
+**** remove file
+#+begin_src julia
+  rm(path)
+#+end_src
+**** rename file
+#+begin_src julia
+  mv(target, dist)
+#+end_src
+**** file type
+1. isblockdev
+2. ischardev
+3. isdir
+4. isfifo
+5. isfile
+6. islink
+7. ismount
+8. ispath
+9. issocket
+**** read link
+#+begin_src julia
+  readline(path) -> AbstractString
+#+end_src
+**** exists
+#+begin_src julia
+  isfile(path)
+#+end_src
+*** 目录
+**** 遍历目录
+#+begin_src julia
+  for (root, dirs, files) in walkdir(".")
+
+  end
+#+end_src
+
+#+begin_src julia
+  readdir(dir = pwd(), join = false, sort = false) -> Vector{String}
+#+end_src
+**** remove dir
+#+begin_src julia
+  rm("dir", recursive = true)
+#+end_src

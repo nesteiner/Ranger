@@ -1,0 +1,49 @@
+#+title: Summery Holiday Schedule
+
+* Spring Boot 集成项目
+** 需求
+1. Spring Data JPA
+2. MySQL
+** 功能
+1. 文件上传
+2. 图片上传
+3. 用户登录
+4. JWT 验证
+
+** 实例
+- 博客项目
+- VBlog 改写
+
+** 开发流程
+1. 用户登录
+2. 博客管理
+
+   
+* Mindmap 回顾计划
+
+* 主页构造计划
+** 询问
+** 设计
+- use scratch 项目
+- 全前端
+- 带分页
+* SpringBoot Web 应用
+** 需求
+1. 文件上传
+2. 图片上传
+3. JWT 登录
+
+* Flux 学习
+** 需求
+- 使用 MLJFlux
+- 构建模型
+- *动手学习深度学习*
+- Kaggle
+
+
+
+* Rust Programming
+** Basic 
+** Roadmap
+** Project Based
+

@@ -1,0 +1,52 @@
+#+title: Linux 环境
+
+* Linux 环境 in Rust
+** 程序参数
+#+begin_src rust
+  use std::env;
+
+  fn main() {
+      let args: Vec<String> = env::args().collect();
+  }
+#+end_src
+
+注意
+args 包含运行指令
+** 环境变量
+#+begin_src rust
+  use std::env;
+
+  fn main() {
+      let variable = match env::var("JULIA_PKG_SERVER") {
+          Ok(val) => val,
+          Err(_) => String::from("none"),
+      };
+
+      println!("{}", variable);
+  }
+#+end_src
+** TODO 时间和日期
+** TODO 临时文件
+** 用户信息
+** 主机信息
+** 日志
+** 资源和限制
+
+* Linux 环境 in Julia
+** 程序参数
+#+begin_src julia
+  ARGS::Array{ASCIIString}
+#+end_src
+
+注意
+args 不包含运行指令
+** 环境变量
+#+begin_src julia
+  ENV["environment name"]
+#+end_src
+** 时间和日期
+** 临时文件
+** 用户信息
+** 主机信息
+** 日志
+** 资源和限制
